@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func main() {
@@ -14,7 +13,7 @@ func main() {
 		fmt.Println("Welcome to school")
 	})
 	mux.HandleFunc("/class", (getClassInfo))
-	mux.HandleFunc("/student/", checkAuth(getStudentInfo))
+	mux.HandleFunc("/student/{id}", checkAuth(getStudentInfo))
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		fmt.Println("Error happened", err.Error())
@@ -88,27 +87,34 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func getStudentInfo(w http.ResponseWriter, r *http.Request) {
-	urlPath := strings.TrimPrefix(r.URL.Path, "/student/")
-	id, err := strconv.Atoi(urlPath)
+	// urlPath := strings.TrimPrefix(r.URL.Path, "/student/")
+	// id, err := strconv.Atoi(urlPath)
+	idStud := r.PathValue("id")
+	id, err := strconv.Atoi(idStud)
 	if err != nil {
 		fmt.Println("Error converting id:", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var student Student
-	switch id {
-	case 1:
-		student = Minnie
-	case 2:
-		student = Donald
-	case 3:
-		student = Mickey
-	default:
-		fmt.Println("Student not found for id:", id)
-		w.WriteHeader(http.StatusNotFound)
-		return
+	var student = map[int]Student{
+		1: Minnie,
+		2: Donald,
+		3: Mickey,
 	}
-	err = json.NewEncoder(w).Encode(student)
+	// var student Student
+	// switch id {
+	// case 1:
+	// 	student = Minnie
+	// case 2:
+	// 	student = Donald
+	// case 3:
+	// 	student = Mickey
+	// default:
+	// fmt.Println("Student not found for id:", id)
+	// w.WriteHeader(http.StatusNotFound)
+	// 	// return
+	// }
+	err = json.NewEncoder(w).Encode(student[id])
 	if err != nil {
 		fmt.Println("Error encoding student:", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
